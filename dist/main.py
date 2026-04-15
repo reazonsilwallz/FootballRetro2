@@ -20,12 +20,12 @@ clock = pygame.time.Clock()
 
 # SOUND
 # load kick sound
-kick_sound = pygame.mixer.Sound("FootballRetro2/dist/assets/kick.wav")
+kick_sound = pygame.mixer.Sound("dist/assets/kick.wav")
 kick_sound.set_volume(0.6)
 kick_channel = pygame.mixer.Channel(0)
 
 # load cheer sound
-cheer_sound = pygame.mixer.Sound("FootballRetro2/dist/assets/cheer.mp3")
+cheer_sound = pygame.mixer.Sound("dist/assets/cheer.mp3")
 cheer_sound.set_volume(0.8)
 cheer_channel = pygame.mixer.Channel(1)
 
@@ -100,7 +100,7 @@ last_kick_time = 0
 kick_cooldown = 300
 
 # TIMER
-game_duration = 90
+game_duration = 30
 game_start_time = None
 winner_text = ""
 
