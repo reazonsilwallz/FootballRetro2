@@ -515,11 +515,120 @@ while running:
             red_angle = 180
             red_running = False
 
+        # ----- DRAW BACKGROUND -----
+        # gray street-style background
+        screen.fill((60, 60, 60))
 
+        # dark top and bottom border strips
+        pygame.draw.rect(screen, (40, 40, 40), (0, 0, 800, 10))
+        pygame.draw.rect(screen, (40, 40, 40), (0, 590, 800, 10))
 
-    # flip() the display to put your work on screen
-    pygame.display.flip()
+        # vertical texture lines
+        for i in range(0, 800, 40):
+            pygame.draw.line(screen, (70, 70, 70), (i, 0), (i, 600), 1)
 
-    clock.tick(60)  # limits FPS to 60
+        # horizontal texture lines
+        for i in range(0, 600, 40):
+            pygame.draw.line(screen, (70, 70, 70), (0, i), (800, i), 1)
 
+        # center markings
+        pygame.draw.line(screen, (200, 200, 200), (400, 0), (400, 600), 2)
+        pygame.draw.circle(screen, (180, 180, 180), (400, 300), 70, 2)
+
+        # goals
+        pygame.draw.rect(screen, (255, 255, 255), (left_goal_x, left_goal_y, goal_width, goal_height))
+        pygame.draw.rect(screen, (255, 255, 255), (right_goal_x, right_goal_y, goal_width, goal_height))
+
+        # left goal net
+        for y in range(left_goal_y, left_goal_y + goal_height, 10):
+            pygame.draw.line(screen, (200, 200, 200), (left_goal_x, y), (left_goal_x + goal_width, y), 1)
+        for x in range(left_goal_x, left_goal_x + goal_width, 5):
+            pygame.draw.line(screen, (200, 200, 200), (x, left_goal_y), (x, left_goal_y + goal_height), 1)
+
+        # right goal net
+        for y in range(right_goal_y, right_goal_y + goal_height, 10):
+            pygame.draw.line(screen, (200, 200, 200), (right_goal_x, y), (right_goal_x + goal_width, y), 1)
+        for x in range(right_goal_x, right_goal_x + goal_width, 5):
+            pygame.draw.line(screen, (200, 200, 200), (x, right_goal_y), (x, right_goal_y + goal_height), 1)
+
+        # draw ball
+        pygame.draw.circle(screen, (0, 0, 0), (int(ball_x), int(ball_y)), ball_radius)
+        pygame.draw.circle(screen, (255, 255, 255), (int(ball_x), int(ball_y)), ball_radius, 2)
+
+        # draw blue pointed player
+        blue_surface = pygame.Surface((blue_width, blue_height), pygame.SRCALPHA)
+        blue_points = [
+            (0, 0),
+            (0, blue_height),
+            (blue_width * 0.7, blue_height),
+            (blue_width, blue_height / 2),
+            (blue_width * 0.7, 0),
+        ]
+        pygame.draw.polygon(blue_surface, (0, 100, 255), blue_points)
+        rotated_blue = pygame.transform.rotate(blue_surface, -blue_angle)
+        rotated_blue_rect = rotated_blue.get_rect(
+            center=(blue_x + blue_width / 2, blue_y + blue_height / 2)
+        )
+        screen.blit(rotated_blue, rotated_blue_rect.topleft)
+
+        # draw red pointed player
+        red_surface = pygame.Surface((red_width, red_height), pygame.SRCALPHA)
+        red_points = [
+            (0, 0),
+            (0, red_height),
+            (red_width * 0.7, red_height),
+            (red_width, red_height / 2),
+            (red_width * 0.7, 0),
+        ]
+        pygame.draw.polygon(red_surface, (255, 0, 0), red_points)
+        rotated_red = pygame.transform.rotate(red_surface, -red_angle)
+        rotated_red_rect = rotated_red.get_rect(
+            center=(red_x + red_width / 2, red_y + red_height / 2)
+        )
+        screen.blit(rotated_red, rotated_red_rect.topleft)
+
+        # draw score
+        score_text = score_font.render(f"{left_score}  -  {right_score}", True, (255, 255, 255))
+        score_rect = score_text.get_rect(center=(400, 40))
+        screen.blit(score_text, score_rect)
+
+        # draw timer
+        timer_surface = timer_font.render(timer_text, True, (255, 255, 255))
+        timer_rect = timer_surface.get_rect(center=(400, 80))
+        screen.blit(timer_surface, timer_rect)
+
+        # draw white flash just after a goal
+        if pygame.time.get_ticks() - goal_flash_time < 300:
+            flash = pygame.Surface((800, 600))
+            flash.set_alpha(120)
+            flash.fill((255, 255, 255))
+            screen.blit(flash, (0, 0))
+
+    # ---------------- GAME OVER SCREEN ----------------
+    elif game_state == "game_over":
+        screen.fill((20, 20, 20))
+
+        game_over_text = game_over_font.render("GAME OVER", True, (255, 255, 0))
+        result_text = button_font.render(winner_text, True, (255, 255, 255))
+        final_score_text = score_font.render(f"Final Score: {left_score} - {right_score}", True, (255, 255, 255))
+        restart_text = score_font.render("Press Enter", True, (200, 200, 200))
+
+        game_over_rect = game_over_text.get_rect(center=(400, 180))
+        result_rect = result_text.get_rect(center=(400, 280))
+        final_score_rect = final_score_text.get_rect(center=(400, 350))
+        restart_rect = restart_text.get_rect(center=(400, 430))
+
+        screen.blit(game_over_text, game_over_rect)
+        screen.blit(result_text, result_rect)
+        screen.blit(final_score_text, final_score_rect)
+        screen.blit(restart_text, restart_rect)
+
+    # show updated frame
+    pygame.display.update()
+
+    # keep 60 FPS
+    clock.tick(60)
+
+# close game
 pygame.quit()
+sys.exit()
