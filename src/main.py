@@ -373,6 +373,148 @@ while running:
         red_x = max(0, min(red_x, 800 - red_width))
         red_y = max(0, min(red_y, 600 - red_height))
 
+         # ----- BALL MOVEMENT -----
+        ball_x += ball_speed_x
+        ball_y += ball_speed_y
+
+        # friction slows ball every frame
+        ball_speed_x *= friction
+        ball_speed_y *= friction
+
+        # stop tiny ball movement
+        if abs(ball_speed_x) < 0.1:
+            ball_speed_x = 0
+        if abs(ball_speed_y) < 0.1:
+            ball_speed_y = 0
+
+        # bounce off top
+        if ball_y - ball_radius <= 0:
+            ball_y = ball_radius
+            ball_speed_y *= -1
+
+        # bounce off bottom
+        if ball_y + ball_radius >= 600:
+            ball_y = 600 - ball_radius
+            ball_speed_y *= -1
+
+        # check if ball is in goal openings
+        in_left_goal_opening = left_goal_y <= ball_y <= left_goal_y + goal_height
+        in_right_goal_opening = right_goal_y <= ball_y <= right_goal_y + goal_height
+
+        # bounce left wall if not in goal opening
+        if ball_x - ball_radius <= 0 and not in_left_goal_opening:
+            ball_x = ball_radius
+            ball_speed_x *= -1
+
+        # bounce right wall if not in goal opening
+        if ball_x + ball_radius >= 800 and not in_right_goal_opening:
+            ball_x = 800 - ball_radius
+            ball_speed_x *= -1
+
+        # current time used for kick sound cooldown
+        current_time = pygame.time.get_ticks()
+
+        # ----- BLUE COLLISION -----
+        blue_center_x = blue_x + blue_width / 2
+        blue_center_y = blue_y + blue_height / 2
+
+        dx1 = ball_x - blue_center_x
+        dy1 = ball_y - blue_center_y
+        distance1 = math.sqrt(dx1 * dx1 + dy1 * dy1)
+
+        min_distance1 = ball_radius + max(blue_width, blue_height) / 2
+
+        if distance1 < min_distance1 and distance1 != 0:
+            # only play kick sound after cooldown
+            if current_time - last_kick_time > kick_cooldown:
+                kick_channel.stop()
+                kick_channel.play(kick_sound)
+                last_kick_time = current_time
+
+            overlap = min_distance1 - distance1
+            nx = dx1 / distance1
+            ny = dy1 / distance1
+
+            # push ball away from player
+            ball_x += nx * overlap
+            ball_y += ny * overlap
+
+            # if blue is moving, kick ball in facing direction
+            if blue_running:
+                ball_speed_x = math.cos(math.radians(blue_angle)) * 9
+                ball_speed_y = math.sin(math.radians(blue_angle)) * 9
+
+        # ----- RED COLLISION -----
+        red_center_x = red_x + red_width / 2
+        red_center_y = red_y + red_height / 2
+
+        dx2 = ball_x - red_center_x
+        dy2 = ball_y - red_center_y
+        distance2 = math.sqrt(dx2 * dx2 + dy2 * dy2)
+
+        min_distance2 = ball_radius + max(red_width, red_height) / 2
+
+        if distance2 < min_distance2 and distance2 != 0:
+            if current_time - last_kick_time > kick_cooldown:
+                kick_channel.stop()
+                kick_channel.play(kick_sound)
+                last_kick_time = current_time
+
+            overlap = min_distance2 - distance2
+            nx = dx2 / distance2
+            ny = dy2 / distance2
+
+            ball_x += nx * overlap
+            ball_y += ny * overlap
+
+            if red_running:
+                ball_speed_x = math.cos(math.radians(red_angle)) *  9
+                ball_speed_y = math.sin(math.radians(red_angle)) * 9
+
+        # ----- GOAL DETECTION -----
+        if ball_x - ball_radius <= 0 and in_left_goal_opening:
+            right_score += 1
+            cheer_channel.stop()
+            cheer_channel.play(cheer_sound)
+            goal_flash_time = pygame.time.get_ticks()
+
+            # reset all positions after goal
+            ball_x = 400
+            ball_y = 300
+            ball_speed_x = 0
+            ball_speed_y = 0
+
+            blue_x = 100
+            blue_y = 100
+            blue_angle = 0
+            blue_running = False
+
+            red_x = 650
+            red_y = 250
+            red_angle = 180
+            red_running = False
+
+        if ball_x + ball_radius >= 800 and in_right_goal_opening:
+            left_score += 1
+            cheer_channel.stop()
+            cheer_channel.play(cheer_sound)
+            goal_flash_time = pygame.time.get_ticks()
+
+            ball_x = 400
+            ball_y = 300
+            ball_speed_x = 0
+            ball_speed_y = 0
+
+            blue_x = 100
+            blue_y = 100
+            blue_angle = 0
+            blue_running = False
+
+            red_x = 650
+            red_y = 250
+            red_angle = 180
+            red_running = False
+
 
 
     # flip() the display to put your work on screen
