@@ -1,8 +1,12 @@
 import pygame
+import sys
+import math
 
 # pygame setup
 pygame.init()
+pygame.mixer.init
 screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("FootballRetro")
 clock = pygame.time.Clock()
 running = True
 
